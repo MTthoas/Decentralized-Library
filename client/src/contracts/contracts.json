@@ -1,0 +1,343 @@
+{
+  "Library": {
+    "address": "0xFdAcCe313ecAcFc4001e4B4bC41832B86842aF51",
+    "abi": [
+      {
+        "type": "constructor",
+        "payable": false,
+        "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "addBook",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "string",
+            "name": "_title"
+          },
+          {
+            "type": "string",
+            "name": "_author"
+          }
+        ],
+        "outputs": []
+      },
+      {
+        "type": "function",
+        "name": "approveLoan",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "_id"
+          }
+        ],
+        "outputs": []
+      },
+      {
+        "type": "function",
+        "name": "bookCount",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "books",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": "bookId"
+          },
+          {
+            "type": "string",
+            "name": "title"
+          },
+          {
+            "type": "string",
+            "name": "author"
+          },
+          {
+            "type": "uint256",
+            "name": "pages"
+          },
+          {
+            "type": "bool",
+            "name": "exist"
+          },
+          {
+            "type": "bool",
+            "name": "isAvailable"
+          },
+          {
+            "type": "address",
+            "name": "borrower"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "borrowerLoans",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address"
+          },
+          {
+            "type": "uint256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "deleteBook",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "_id"
+          }
+        ],
+        "outputs": []
+      },
+      {
+        "type": "function",
+        "name": "getAllBooks",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "tuple[]",
+            "components": [
+              {
+                "type": "uint256",
+                "name": "bookId"
+              },
+              {
+                "type": "string",
+                "name": "title"
+              },
+              {
+                "type": "string",
+                "name": "author"
+              },
+              {
+                "type": "uint256",
+                "name": "pages"
+              },
+              {
+                "type": "bool",
+                "name": "exist"
+              },
+              {
+                "type": "bool",
+                "name": "isAvailable"
+              },
+              {
+                "type": "address",
+                "name": "borrower"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getBook",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "_id"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "tuple",
+            "components": [
+              {
+                "type": "uint256",
+                "name": "bookId"
+              },
+              {
+                "type": "string",
+                "name": "title"
+              },
+              {
+                "type": "string",
+                "name": "author"
+              },
+              {
+                "type": "uint256",
+                "name": "pages"
+              },
+              {
+                "type": "bool",
+                "name": "exist"
+              },
+              {
+                "type": "bool",
+                "name": "isAvailable"
+              },
+              {
+                "type": "address",
+                "name": "borrower"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getBorrowerLoans",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "_borrower"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256[]"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getOwner",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "loanBook",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "_id"
+          }
+        ],
+        "outputs": []
+      },
+      {
+        "type": "function",
+        "name": "loanCount",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "loans",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": "bookId"
+          },
+          {
+            "type": "address",
+            "name": "borrower"
+          },
+          {
+            "type": "bool",
+            "name": "isApproved"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "owner",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "address"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "removeBook",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "_id"
+          }
+        ],
+        "outputs": []
+      },
+      {
+        "type": "function",
+        "name": "returnBook",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "_id"
+          }
+        ],
+        "outputs": []
+      }
+    ]
+  }
+}

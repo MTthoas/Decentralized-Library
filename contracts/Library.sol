@@ -4,11 +4,13 @@ pragma solidity ^0.8.9;
 contract Library {
     
     struct Book {
+        uint256 bookId;
         string title;
         string author;
         uint256 pages;
         bool exist;
         bool isAvailable;
+        address borrower;
     }
 
     struct Loan {
@@ -34,12 +36,18 @@ contract Library {
         _;
     }
 
+    function getOwner() public view returns (address) {
+        return owner;
+    }
+
+
     // Ajouter un livre
 
     function addBook(string memory _title, string memory _author) public onlyOwner{
         bookCount++;
-        books[bookCount] = Book(_title, _author, 0, true, true);
+        books[bookCount] = Book(bookCount, _title, _author, 0, true, true, msg.sender);
     }
+
 
     // Récupérer un livre
 
@@ -47,6 +55,31 @@ contract Library {
         require(books[_id].exist == true, "Book does not exist");
         return books[_id];
     }
+
+    function getAllBooks() public view returns (Book[] memory) {
+        uint256 existingBooksCount = 0;
+        
+        // Compter combien de livres ont la propriété 'exist' à 'true'
+        for (uint256 i = 1; i <= bookCount; i++) {
+            if (books[i].exist) {
+                existingBooksCount++;
+            }
+        }
+
+        // Créer un tableau dynamique de la taille du nombre de livres existants
+        Book[] memory allBooks = new Book[](existingBooksCount);
+        
+        uint256 j = 0; // Index pour le tableau allBooks
+        for (uint256 i = 1; i <= bookCount; i++) {
+            if (books[i].exist) {
+                allBooks[j] = books[i];
+                j++;
+            }
+        }
+        return allBooks;
+    }
+
+
 
     // Louer un livre
 
@@ -57,6 +90,12 @@ contract Library {
         loans[loanCount] = Loan(_id, msg.sender, false);
         borrowerLoans[msg.sender].push(loanCount);
         books[_id].isAvailable = false;
+        books[_id].borrower = msg.sender;
+    }
+
+    function BookIsLoan(uint256 _id) public view returns (bool) {
+        require(books[_id].exist == true, "Book does not exist");
+        return books[_id].isAvailable;
     }
 
     // Approver un prêt
@@ -74,10 +113,16 @@ contract Library {
         books[_id].isAvailable = true;
     }
 
+    function deleteBook(uint256 _id) public onlyOwner() {
+        require(books[_id].exist == true, "Book does not exist");
+        delete books[_id];
+    }
+
     function returnBook(uint256 _id) public {
         require(loans[_id].isApproved == true, "Loan is not approved");
         require(loans[_id].borrower == msg.sender, "You are not the borrower");
         books[loans[_id].bookId].isAvailable = true;
+        books[loans[_id].bookId].borrower = address(0);
     }
 
     function getBorrowerLoans(address _borrower) public view returns (uint256[] memory) {
