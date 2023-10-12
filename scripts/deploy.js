@@ -14,9 +14,10 @@ async function main() {
     const library = await Library.deploy();
     console.log(`Library contract address: ${library.address}`);
 
-    await library.addBook("Title1", "Author1");
-    await library.addBook("Title2", "Author2");
-    await library.addBook("Title3", "Author3");
+    // Add real books
+    await library.addBook("1984", "George Orwell");
+    await library.addBook("The Great Gatsby", "F. Scott Fitzgerald");
+
 
     // Prepare contract data
     const data = {

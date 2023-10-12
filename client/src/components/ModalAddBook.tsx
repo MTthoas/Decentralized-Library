@@ -5,12 +5,14 @@ interface ModalAddBookProps {
   setTitle: (value: string) => void;
   author: string;
   setAuthor: (value: string) => void;
-  loading: boolean;
+  loadingAdd: boolean;
   addBook: () => void;
+  error: string | null;
   closeModal: () => void;
 }
 
-const ModalAddBook: React.FC<ModalAddBookProps> = ({ title, setTitle, author, setAuthor, loading, addBook, closeModal }) => {
+const ModalAddBook: React.FC<ModalAddBookProps> = ({ title, setTitle, author, setAuthor, loadingAdd, addBook, error, closeModal }) => {
+
   return (
     <div className="relative z-10">
       <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
@@ -19,12 +21,13 @@ const ModalAddBook: React.FC<ModalAddBookProps> = ({ title, setTitle, author, se
           <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
             <div className="flex items-center justify-center">
               <div className="bg-white p-8 rounded">
-                <h2 className="text-xl mb-4">Ajouter un livre</h2>
+              <h2 className="text-xl mb-4">Ajouter un livre</h2>
+                {error && <p className="text-red-500 my-2">{error}</p>}
                 <input
-                  className="border p-2 mb-4 w-full"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Titre du livre"
+                    className="border p-2 mb-4 w-full"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Titre du livre"
                 />
                 <input
                   className="border p-2 mb-4 w-full"
@@ -35,8 +38,8 @@ const ModalAddBook: React.FC<ModalAddBookProps> = ({ title, setTitle, author, se
               </div>
             </div>
             <div className=" px-4 py-3 sm:flex sm:flex-row-reverse px-5">
-              <button onClick={addBook} disabled={loading} className="bg-blue-50 border px-3 mx-3 rounded-md">
-                  {loading ? "Ajout du livre en cours..." : "Ajouter un livre"}
+              <button onClick={addBook} disabled={loadingAdd} className="bg-blue-50 border px-3 mx-3 rounded-md">
+                  {loadingAdd ? "Ajout du livre en cours..." : "Ajouter un livre"}
               </button>
               <button
                 type="button"

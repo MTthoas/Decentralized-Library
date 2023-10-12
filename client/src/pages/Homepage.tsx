@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react"; // Ajoutez useEffect ici
-import { ethers } from "ethers";
+import { useState, useEffect } from "react"; // Ajoutez useEffect ici
 import { UseWeb3 } from "../hooks/UseWeb3";
-import Contracts from "../contracts/contracts.json";
 
 import ModalAddBook from "../components/ModalAddBook";
-import { useEthereum } from "../hooks/useEtherereum";
+import { UseEthereum } from "../hooks/UseEthereum";
 
 interface Book {
   id: number;
@@ -19,21 +17,19 @@ interface Book {
 
 export default function Homepage() {
   const { hasProvider } = UseWeb3();
-  const [books, setBooks] = useState<Book[]>([]); // Ceci est un exemple, dans la réalité, vous allez probablement récupérer ces données de votre contrat Ethereum
+  const [books, setBooks] = useState<Book[]>([]);
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOwnerOfSite, setIsOwnerOfSite] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { provider, signer, contract } = useEthereum();
+  const { provider, signer, contract } = UseEthereum();
 
   const [loadingAdd, setLoadingAdd] = useState(false);
   const [loadingBorrow, setLoadingBorrow] = useState<number | null>(null);
   const [loadingApprove, setLoadingApprove] = useState<number | null>(null);
   const [loadingReturn, setLoadingReturn] = useState<number | null>(null);
   const [loadingDelete, setLoadingDelete] = useState<number | null>(null);
-
 
   useEffect(() => {
     getBooks();
@@ -43,7 +39,7 @@ export default function Homepage() {
   const checkSelectedAddress = async () => {
 
     if (window.ethereum && window.ethereum.selectedAddress) {
-      // MetaMask is connected
+
       const selectedAddress = window.ethereum.selectedAddress;
       console.log(`Connected to MetaMask with address: ${selectedAddress}`);
 
@@ -60,8 +56,6 @@ export default function Homepage() {
    }
 
   }
-
-
 
   const getBooks = async () => {
     if (window.ethereum) {
@@ -80,8 +74,6 @@ export default function Homepage() {
           owner: book.borrower,
         }));
 
-        // console.table(booksFormatted);
-
         setBooks(booksFormatted);
       } catch (error) {
         console.error("Error fetching books:", error);
@@ -99,15 +91,14 @@ export default function Homepage() {
   
       try {
         const tx = await contract.addBook(title, author);
-        // Attendez que la transaction soit minée
         await tx.wait();
-        // Après avoir ajouté un livre et la transaction a été minée, rafraîchissez la liste des livres
+
         getBooks();
         setTitle("");
         setAuthor("");
         setIsModalOpen(false);
       } catch (error : any) {
-        if (error.message && error.message.includes("Only owner can call this function")) {
+        if (error.message && error.message.includes("You are not the borrower")) {
           setError("Seul le propriétaire peut ajouter des livres!");
         } else {
           console.error("Error adding book:", error);
@@ -126,11 +117,10 @@ export default function Homepage() {
   
       try {
         const tx = await contract.loanBook(id);
-        // Attendez que la transaction soit minée
         await tx.wait();
-        // Rafraîchissez la liste des livres
+
         getBooks();
-      } catch (error) {
+      } catch (error : any) {
         console.error("Error borrowing book:", error);
         setError("Une erreur s'est produite lors de l'emprunt du livre");
         setLoadingBorrow(id);
@@ -151,12 +141,12 @@ export default function Homepage() {
       console.log("Approve loan for book with id:", bookId);
       const isApproved = await contract.approveLoan(bookId);
       if (isApproved) {
-        // Continuez votre logique ici si le livre est approuvé pour être emprunté
+        setLoadingApprove(null);
       }
-      setLoadingApprove(null);
-    } catch (error) {
+    } catch (error : any) {
       console.error("Error checking approval:", error);
       setLoadingApprove(null);
+      setError("Une erreur s'est produite lors de l'approbation du livre");
     } finally {
       getBooks()
     }
@@ -167,17 +157,24 @@ export default function Homepage() {
 
     try {
 
-      setLoadingBorrow(bookId);
+      setLoadingReturn(bookId);
       console.log("Return book with id:", bookId);
       const isReturned = await contract.returnBook(bookId);
       if (isReturned) {
-        // Continuez votre logique ici si le livre est retourné
-        setLoadingBorrow(bookId);
+        setLoadingReturn(bookId);
       }
       
-    } catch (error) {
-      console.error("Error checking return:", error);
-      setLoadingBorrow(bookId);
+    } catch (error : any) {
+      console.error("Error returning book:", error);
+      let errorMessage = "Une erreur s'est produite lors du retour du livre.";
+
+      if (error.error && error.error.message) {
+        errorMessage += ` Détails: ${error.error.message}`;
+      }
+    
+      setError("Une erreur s'est produite lors du retour du livre");
+      setLoadingReturn(null);
+
     } finally {
       getBooks()
     }
@@ -192,16 +189,15 @@ export default function Homepage() {
       try {
         setLoadingDelete(id);
         const tx = await contract.deleteBook(id);
-        // Attendez que la transaction soit minée
         await tx.wait();
-        // Après avoir ajouté un livre et la transaction a été minée, rafraîchissez la liste des livres
+
         getBooks();
         setTitle("");
         setAuthor("");
         setIsModalOpen(false);
       } catch (error : any) {
         setLoadingDelete(id);
-        if (error.message && error.message.includes("Only owner can call this function")) {
+        if (error.message && error.message.includes("You are not the borrower")) {
           setError("Seul le propriétaire peut ajouter des livres!");
         } else {
           console.error("Error adding book:", error);
@@ -217,6 +213,8 @@ export default function Homepage() {
   return (
     <div className="App p-8 mx-24">
       <h1 className="text-2xl mb-8"> List of books </h1>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
 
       {hasProvider && (
         <div>
@@ -259,7 +257,7 @@ export default function Homepage() {
                       <button
                         className="bg-blue-500 text-white p-2 rounded mx-2"
                       >
-                        Demande d'emprunt en cours..
+                        Demande d'emprunt en cours au libraire..
                       </button>
                     )}
                     {book.isAvailable && isOwnerOfSite && (
@@ -281,9 +279,9 @@ export default function Homepage() {
                           onClick={() => {
                             returnBook(book.id + 1)
                           }}
-                          disabled = {loadingBorrow === book.id + 1}
+                          disabled = {loadingReturn === book.id + 1}
                         >
-                          { loadingBorrow === book.id + 1 ? "Chargement..." : "Rendre"}
+                          { loadingReturn === book.id + 1 ? "Chargement..." : "Rendre"}
                         </button>
                       )
                     }
@@ -319,8 +317,9 @@ export default function Homepage() {
           setTitle={setTitle} 
           author={author}
           setAuthor={setAuthor}
-          loading={loading}
+          loadingAdd={loadingAdd}
           addBook={addBook}
+          error={error}
           closeModal={() => setIsModalOpen(false)}
            />
       )}

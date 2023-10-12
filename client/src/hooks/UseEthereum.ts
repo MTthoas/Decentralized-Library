@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import Contracts from "../contracts/contracts.json";
 
-export const useEthereum = () => {
+export const UseEthereum = () => {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
   const contract = new ethers.Contract(
