@@ -1,5 +1,4 @@
 require("@nomiclabs/hardhat-waffle");
-// Si vous utilisez d'autres plugins, n'oubliez pas de les requérir ici
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -8,7 +7,7 @@ module.exports = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-      chainId: 1337 // ChainID utilisé par le réseau local de Hardhat
+      chainId: 1337 
     },
     localhost: {
       url: 'http://127.0.0.1:8545',
@@ -18,7 +17,6 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     }
-    // Si vous souhaitez ajouter d'autres réseaux, comme Rinkeby, Ropsten, etc., ajoutez-les ici
   },
   solidity: "0.8.19",
   paths: {
@@ -28,6 +26,6 @@ module.exports = {
     artifacts: "./artifacts"
   },
   mocha: {
-    timeout: 20000 // Temps avant qu'un test soit considéré comme échoué. Vous pouvez ajuster cela si nécessaire.
+    timeout: 20000 
   }
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; // Ajoutez useEffect ici
+import { useState, useEffect } from "react"; 
 import { UseWeb3 } from "../hooks/UseWeb3";
 
 import ModalAddBook from "../components/ModalAddBook";

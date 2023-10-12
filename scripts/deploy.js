@@ -1,4 +1,4 @@
-// deploy.js
+// Run: npx hardhat run scripts/deploy.js --network localhost
 const fs = require('fs');
 const { ethers } = require('hardhat');
 
@@ -9,7 +9,7 @@ async function main() {
     const balance = await deployer.getBalance();
     console.log(`Account balance: ${ethers.utils.formatEther(balance)} ETH`);
 
-    // Deploy Library contract
+
     const Library = await ethers.getContractFactory('Library');
     const library = await Library.deploy();
     console.log(`Library contract address: ${library.address}`);
@@ -18,8 +18,6 @@ async function main() {
     await library.addBook("1984", "George Orwell");
     await library.addBook("The Great Gatsby", "F. Scott Fitzgerald");
 
-
-    // Prepare contract data
     const data = {
         Library: {
             address: library.address,
@@ -27,7 +25,6 @@ async function main() {
         }
     };
 
-    // Write contract data to file
     const path = './client/src/contracts/contracts.json';
 
     fs.writeFileSync(path, JSON.stringify(data, null, 2));
