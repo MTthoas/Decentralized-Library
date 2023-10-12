@@ -1,11 +1,29 @@
 {
   "Library": {
-    "address": "0xFdAcCe313ecAcFc4001e4B4bC41832B86842aF51",
+    "address": "0x8E28765227cba27AAd7499e4e2aCcDe856113e0C",
     "abi": [
       {
         "type": "constructor",
         "payable": false,
         "inputs": []
+      },
+      {
+        "type": "function",
+        "name": "BookIsLoan",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "_id"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "bool"
+          }
+        ]
       },
       {
         "type": "function",
@@ -87,6 +105,10 @@
             "name": "isAvailable"
           },
           {
+            "type": "bool",
+            "name": "isApproved"
+          },
+          {
             "type": "address",
             "name": "borrower"
           }
@@ -161,6 +183,10 @@
                 "name": "isAvailable"
               },
               {
+                "type": "bool",
+                "name": "isApproved"
+              },
+              {
                 "type": "address",
                 "name": "borrower"
               }
@@ -209,6 +235,10 @@
                 "name": "isAvailable"
               },
               {
+                "type": "bool",
+                "name": "isApproved"
+              },
+              {
                 "type": "address",
                 "name": "borrower"
               }
@@ -244,6 +274,19 @@
         "outputs": [
           {
             "type": "address"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "isOwner",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "bool"
           }
         ]
       },

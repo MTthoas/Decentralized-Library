@@ -3,11 +3,17 @@ import { ethers } from "ethers";
 import { UseWeb3 } from "../hooks/UseWeb3";
 import Contracts from "../contracts/contracts.json";
 
+import ModalAddBook from "../components/ModalAddBook";
+import { useEthereum } from "../hooks/useEtherereum";
+
 interface Book {
   id: number;
   title: string;
   author: string;
+  pages: number;
+  exist : boolean;
   isAvailable: boolean;
+  isApproved: boolean;
   owner: string;
 }
 
@@ -18,39 +24,47 @@ export default function Homepage() {
   const [author, setAuthor] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-
+  const [isOwnerOfSite, setIsOwnerOfSite] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { provider, signer, contract } = useEthereum();
 
-  let provider: any;
+  const [loadingAdd, setLoadingAdd] = useState(false);
+  const [loadingBorrow, setLoadingBorrow] = useState<number | null>(null);
+  const [loadingApprove, setLoadingApprove] = useState<number | null>(null);
+  const [loadingReturn, setLoadingReturn] = useState<number | null>(null);
+  const [loadingDelete, setLoadingDelete] = useState<number | null>(null);
+
 
   useEffect(() => {
+    getBooks();
+    checkSelectedAddress();
+  }, []);
+
+  const checkSelectedAddress = async () => {
+
     if (window.ethereum && window.ethereum.selectedAddress) {
       // MetaMask is connected
       const selectedAddress = window.ethereum.selectedAddress;
       console.log(`Connected to MetaMask with address: ${selectedAddress}`);
 
-      
+      const contractOwner = await contract.isOwner();
 
-    } else {
-      // MetaMask is not connected
-      console.log("MetaMask is not connected");
-    }
-    getBooks();
-  }, []);
+      console.log("Contract owner:", contractOwner);
+
+      if (contractOwner == true) {
+        setIsOwnerOfSite(true);
+        console.log("Le propriétaire est connecté")
+      } else {
+        setIsOwnerOfSite(false);
+      }
+   }
+
+  }
+
+
 
   const getBooks = async () => {
     if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-      const signer = provider.getSigner();
-
-      const contract = new ethers.Contract(
-        Contracts.Library.address,
-        Contracts.Library.abi,
-        signer
-      );
-
       try {
         const books = await contract.getAllBooks();
 
@@ -62,6 +76,7 @@ export default function Homepage() {
           title: book.title,
           author: book.author,
           isAvailable: book.isAvailable,
+          isApproved: book.isApproved,
           owner: book.borrower,
         }));
 
@@ -77,24 +92,12 @@ export default function Homepage() {
 
   const addBook = async () => {
     setError(null);
+    setLoadingAdd(true);
 
     if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        Contracts.Library.address,
-        Contracts.Library.abi,
-        signer
-      );
-
-      const currentAddress = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      console.log("Current address:", currentAddress[0]);
-      
-      const contractOwner = await contract.getOwner();
-      console.log("Contract owner:", contractOwner);
+     
   
       try {
-        setLoading(true);
         const tx = await contract.addBook(title, author);
         // Attendez que la transaction soit minée
         await tx.wait();
@@ -111,22 +114,15 @@ export default function Homepage() {
           setError("Une erreur s'est produite lors de l'ajout du livre");
         }
       } finally {
-        setLoading(false);
+        setLoadingAdd(false);
+        getBooks()
       }
     } 
   };
 
   const borrowBook = async (id: number) => {
     if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        Contracts.Library.address,
-        Contracts.Library.abi,
-        signer
-      );
-
-      console.log("Borrowing book with id:", id);
+      setLoadingBorrow(id);
   
       try {
         const tx = await contract.loanBook(id);
@@ -137,49 +133,64 @@ export default function Homepage() {
       } catch (error) {
         console.error("Error borrowing book:", error);
         setError("Une erreur s'est produite lors de l'emprunt du livre");
+        setLoadingBorrow(id);
+      } finally {
+        getBooks()
       }
+      
+      setLoadingBorrow(id);
     }
   };
 
-  const waitForApproval = async (bookId: number) => {
-    if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        Contracts.Library.address,
-        Contracts.Library.abi,
-        signer
-      );
-  
-      try {
-        const isApproved = await contract.BookIsLoan(bookId);
-        if (isApproved) {
-          // Continuez votre logique ici si le livre est approuvé pour être emprunté
-        }
-      } catch (error) {
-        console.error("Error checking approval:", error);
+  const approveLoan = async (bookId: number) => {
+
+    setLoadingBorrow(bookId);
+
+    try {
+
+      console.log("Approve loan for book with id:", bookId);
+      const isApproved = await contract.approveLoan(bookId);
+      if (isApproved) {
+        // Continuez votre logique ici si le livre est approuvé pour être emprunté
       }
+      setLoadingApprove(null);
+    } catch (error) {
+      console.error("Error checking approval:", error);
+      setLoadingApprove(null);
+    } finally {
+      getBooks()
     }
-  };
+
+  }
+
+  const returnBook = async (bookId: number) => {
+
+    try {
+
+      setLoadingBorrow(bookId);
+      console.log("Return book with id:", bookId);
+      const isReturned = await contract.returnBook(bookId);
+      if (isReturned) {
+        // Continuez votre logique ici si le livre est retourné
+        setLoadingBorrow(bookId);
+      }
+      
+    } catch (error) {
+      console.error("Error checking return:", error);
+      setLoadingBorrow(bookId);
+    } finally {
+      getBooks()
+    }
+
+  }
+
 
   const deleteBook = async (id: number) => {
 
     if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        Contracts.Library.address,
-        Contracts.Library.abi,
-        signer
-      );
-
-      const currentAddress = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      console.log("Current address:", currentAddress[0]);
-      
-      const contractOwner = await contract.getOwner();
-      console.log("Contract owner:", contractOwner);
   
       try {
+        setLoadingDelete(id);
         const tx = await contract.deleteBook(id);
         // Attendez que la transaction soit minée
         await tx.wait();
@@ -189,30 +200,34 @@ export default function Homepage() {
         setAuthor("");
         setIsModalOpen(false);
       } catch (error : any) {
+        setLoadingDelete(id);
         if (error.message && error.message.includes("Only owner can call this function")) {
           setError("Seul le propriétaire peut ajouter des livres!");
         } else {
           console.error("Error adding book:", error);
           setError("Une erreur s'est produite lors de l'ajout du livre");
         }
+      } finally {
+        getBooks()
       }
+      setLoadingDelete(id);
     } 
   }
 
   return (
-    <div className="App p-8 mx-12">
-      <h1 className="text-2xl mb-4">Librairie Décentralisée</h1>
+    <div className="App p-8 mx-24">
+      <h1 className="text-2xl mb-8"> List of books </h1>
 
       {hasProvider && (
         <div>
           <table className="min-w-full table-auto mb-8">
             <thead>
               <tr>
-                <th className="border p-2">Title</th>
-                <th className="border p-2">Author</th>
-                <th className="border p-2">Owner</th>
-                <th className="border p-2">isAvailable</th>
-                <th className="border p-2"></th>
+                <th className="border p-2 text-left">Title</th>
+                <th className="border p-2 text-left">Author</th>
+                <th className="border p-2 text-left">Owner</th>
+                <th className="border p-2 text-left">isAvailable</th>
+                <th className="border p-2 text-left"></th>
               </tr>
             </thead>
             <tbody>
@@ -224,47 +239,62 @@ export default function Homepage() {
                   <td className="border p-2">{String(book.isAvailable)}</td>
 
                   <td className="border p-2">
-                    {!book.isAvailable && (
+                    {!book.isAvailable && isOwnerOfSite && !book.isApproved && (
                       <button
-                        className="bg-blue-500 text-white p-2 rounded"
-                        onClick={() => {
-                          borrowBook(book.id);
-                        }}
+                        className="bg-blue-500 text-white p-2 rounded mx-2"
+                        onClick={ () => { approveLoan(book.id + 1) } }
+                        disabled = { loadingApprove === book.id + 1}
                       >
-                        Emprunter
+                        { loadingApprove === book.id + 1 ? "Chargement..." : "Approuver l'emprunt"}
                       </button>
                     )}
-                    {book.isAvailable && (
+                    {!book.isAvailable && isOwnerOfSite && book.isApproved && (
+                      <button
+                        className="bg-red-500 text-white p-2 rounded mx-2"
+                      >
+                        Récupérer le livre
+                      </button>
+                    )}
+                    {!book.isAvailable && !isOwnerOfSite && !book.isApproved && (
+                      <button
+                        className="bg-blue-500 text-white p-2 rounded mx-2"
+                      >
+                        Demande d'emprunt en cours..
+                      </button>
+                    )}
+                    {book.isAvailable && isOwnerOfSite && (
                       <button
                         className="bg-red-500 text-white p-2 rounded mx-2"
                         onClick={() => {
-                          deleteBook(book.id);
+                          deleteBook(book.id + 1)
                         }}
+                        disabled = { loadingDelete === book.id + 1}
                       >
-                        Supprimer
+                        { loadingDelete === book.id + 1 ? "Chargement..." : "Supprimer"}
                       </button>
                     )}
                     {
-                      book.isAvailable && (
+                      window.ethereum && 
+                      window.ethereum.selectedAddress?.toLowerCase() === book.owner.toLowerCase() && book.isApproved && (
                         <button
                           className="bg-green-500 text-white p-2 rounded  mx-2"
                           onClick={() => {
-                            /* handle borrow logic */
+                            returnBook(book.id + 1)
                           }}
+                          disabled = {loadingBorrow === book.id + 1}
                         >
-                          Rendre
+                          { loadingBorrow === book.id + 1 ? "Chargement..." : "Rendre"}
                         </button>
                       )
                     }
                     {
                       book.isAvailable && (
                         <button
-                          className="bg-yellow-500 text-white p-2 rounded mx-2"
-                          onClick={() => {
-                            /* handle borrow logic */
-                          }}
+                          className={`bg-yellow-500 text-white p-2 rounded mx-2 ${loadingBorrow === book.id + 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          onClick={() => borrowBook(book.id + 1)}
+                          disabled={loadingBorrow === book.id + 1}
                         >
-                          Emprunter
+                          {loadingBorrow === book.id + 1 ? "Chargement..." : "Emprunter"}
                         </button>
                       )
                     }
@@ -284,51 +314,15 @@ export default function Homepage() {
       )}
 
       {isModalOpen && (
-        <div
-          className="relative z-10"
-          aria-labelledby="modal-title"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-
-          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                <div className="flex items-center justify-center">
-                  <div className="bg-white p-8 rounded">
-                    <h2 className="text-xl mb-4">Ajouter un livre</h2>
-                    <input
-                      className="border p-2 mb-4 w-full"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Titre du livre"
-                    />
-                    <input
-                      className="border p-2 mb-4 w-full"
-                      value={author}
-                      onChange={(e) => setAuthor(e.target.value)}
-                      placeholder="Auteur du livre"
-                    />
-
-                  </div>
-                </div>
-                <div className=" px-4 py-3 sm:flex sm:flex-row-reverse px-5">
-                  <button onClick={addBook} disabled={loading} className="bg-blue-50 border px-3 mx-3 rounded-md">
-                      {loading ? "Ajout du livre en cours..." : "Ajouter un livre"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ModalAddBook 
+          title={title} 
+          setTitle={setTitle} 
+          author={author}
+          setAuthor={setAuthor}
+          loading={loading}
+          addBook={addBook}
+          closeModal={() => setIsModalOpen(false)}
+           />
       )}
     </div>
   );

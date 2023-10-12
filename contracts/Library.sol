@@ -10,6 +10,7 @@ contract Library {
         uint256 pages;
         bool exist;
         bool isAvailable;
+        bool isApproved;
         address borrower;
     }
 
@@ -40,12 +41,16 @@ contract Library {
         return owner;
     }
 
+    function isOwner () public view returns (bool) {
+        return msg.sender == owner;
+    }
+
 
     // Ajouter un livre
 
     function addBook(string memory _title, string memory _author) public onlyOwner{
         bookCount++;
-        books[bookCount] = Book(bookCount, _title, _author, 0, true, true, msg.sender);
+        books[bookCount] = Book(bookCount, _title, _author, 0, true, true, false, msg.sender);
     }
 
 
@@ -103,6 +108,7 @@ contract Library {
     function approveLoan(uint256 _id) public onlyOwner {
         require(loans[_id].isApproved == false, "Loan is already approved");
         loans[_id].isApproved = true;
+        books[_id].isApproved = true;
     }
 
     // Récupérer un livre
@@ -122,7 +128,7 @@ contract Library {
         require(loans[_id].isApproved == true, "Loan is not approved");
         require(loans[_id].borrower == msg.sender, "You are not the borrower");
         books[loans[_id].bookId].isAvailable = true;
-        books[loans[_id].bookId].borrower = address(0);
+        books[loans[_id].bookId].borrower = owner;
     }
 
     function getBorrowerLoans(address _borrower) public view returns (uint256[] memory) {
