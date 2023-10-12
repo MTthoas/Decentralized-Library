@@ -1,6 +1,8 @@
 # Decentralized Library
 
-Decentralized Library est un projet visant à créer une bibliothèque numérique décentralisée, permettant aux utilisateurs de partager et d'accéder à des ressources sans dépendre d'une autorité centrale
+Decentralized Library est une plateform qui vise à transformer la manière dont nous empruntons et rendons des livres numériques. En éliminant la nécessité d'une autorité centrale.
+
+Developped By @MTthoas
 
 ## Prerequisites
 
