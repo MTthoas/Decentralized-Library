@@ -23,7 +23,7 @@ export default function Homepage() {
   const [error, setError] = useState<string | null>(null);
   const [isOwnerOfSite, setIsOwnerOfSite] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { provider, signer, contract } = UseEthereum();
+  const { contract } = UseEthereum();
 
   const [loadingAdd, setLoadingAdd] = useState(false);
   const [loadingBorrow, setLoadingBorrow] = useState<number | null>(null);

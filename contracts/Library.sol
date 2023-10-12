@@ -64,17 +64,14 @@ contract Library {
     function getAllBooks() public view returns (Book[] memory) {
         uint256 existingBooksCount = 0;
         
-        // Compter combien de livres ont la propriété 'exist' à 'true'
         for (uint256 i = 1; i <= bookCount; i++) {
             if (books[i].exist) {
                 existingBooksCount++;
             }
         }
-
-        // Créer un tableau dynamique de la taille du nombre de livres existants
         Book[] memory allBooks = new Book[](existingBooksCount);
         
-        uint256 j = 0; // Index pour le tableau allBooks
+        uint256 j = 0; 
         for (uint256 i = 1; i <= bookCount; i++) {
             if (books[i].exist) {
                 allBooks[j] = books[i];
